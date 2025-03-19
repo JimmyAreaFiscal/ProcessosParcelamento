@@ -4,7 +4,7 @@ Classe para realizar processamento dos processos de parcelamento.
 """
 from sqlalchemy import Column, String, Float, Boolean
 from model.banco_dados import ProcessoDB, ProcessoHistoricoDB, SessionLocal, Base, engine
-
+from datetime import datetime
 
 class Processo:
 
@@ -16,13 +16,38 @@ class Processo:
         self._enviado = enviado 
 
     def alterarSaneado(self, saneado: bool):
-        self._saneado = saneado 
+        """Marca o processo como saneado e atualiza a data."""
+        self._saneado = saneado
+        session = SessionLocal()
+        processo = session.query(ProcessoDB).filter_by(nome=self._nome).first()
+        if processo:
+            processo.saneado = saneado
+            processo.data_saneamento = datetime.now()
+            session.commit()
+        session.close() 
 
     def alterarSei(self, num_sei: str):
+        """Insere o número SEI e registra a data da alteração."""
         self._sei = num_sei
+        session = SessionLocal()
+        processo = session.query(ProcessoDB).filter_by(nome=self._nome).first()
+        if processo:
+            processo.sei = num_sei
+            processo.data_sei = datetime.now()
+            session.commit()
+        session.close()
 
     def alterarEnvio(self, situacao: bool):
-        self._enviado = situacao 
+        """Marca o processo como enviado e registra a data."""
+        self._enviado = situacao
+        session = SessionLocal()
+        processo = session.query(ProcessoDB).filter_by(nome=self._nome).first()
+        if processo:
+            processo.enviado = situacao
+            processo.data_enviado = datetime.now()
+            session.commit()
+        session.close()
+
 
     def retornarNome(self):
         return self._nome

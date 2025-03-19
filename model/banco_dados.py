@@ -1,4 +1,5 @@
-from sqlalchemy import create_engine, Column, String, Float, Boolean, LargeBinary
+from sqlalchemy import create_engine, Column, String, Float, Boolean, LargeBinary, DateTime 
+from datetime import datetime
 from sqlalchemy.orm import sessionmaker, declarative_base
 import streamlit as st 
 
@@ -20,12 +21,17 @@ def get_db():
 class ProcessoDB(Base):
     __tablename__ = "processos"
 
-    id = Column(String, primary_key=True, index=True)
-    nome = Column(String, nullable=False)
+    nome = Column(String, primary_key=True, index=True)
     valor = Column(Float, nullable=False)
     saneado = Column(Boolean, default=False)
     sei = Column(String, nullable=True)
     enviado = Column(Boolean, default=False)
+    
+    # Novas colunas para armazenar datas
+    data_inclusao = Column(DateTime, default=datetime.utcnow)
+    data_saneamento = Column(DateTime, nullable=True)
+    data_sei = Column(DateTime, nullable=True)
+    data_enviado = Column(DateTime, nullable=True)
 
 class ProcessoHistoricoDB(Base):
     __tablename__ = "historico_processos"

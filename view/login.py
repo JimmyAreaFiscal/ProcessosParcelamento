@@ -15,7 +15,7 @@ def login():
                 if usuario.validarSenha(senha):
                     st.session_state["usuario"] = conta  # Guarda a sessão
                     st.success("Login bem-sucedido!")
-                    st.experimental_rerun()  # Redireciona para a home
+                    st.rerun()  # Redireciona para a home
                 else:
                     st.error("Conta ou senha incorretos.")
             except:
@@ -43,7 +43,7 @@ def criar_conta():
                 st.success("Conta criada com sucesso! Volte para a tela de login.")
                 if st.button("Voltar ao Login"):
                     st.session_state["pagina"] = "login"
-                    st.experimental_rerun()
+                    st.rerun()
             except ValueError:
                 st.error("Usuário já existe. Escolha outro nome de usuário.")
             except:

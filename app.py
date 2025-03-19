@@ -16,12 +16,12 @@ def main():
             login()
             if st.button("Criar Conta"):
                 st.session_state["pagina"] = "criar_conta"
-                st.experimental_rerun()
+                st.rerun()
         elif pagina == "criar_conta":
             criar_conta()
             if st.button("Voltar ao Login"):
                 st.session_state["pagina"] = "login"
-                st.experimental_rerun()
+                st.rerun()
 
 if __name__ == "__main__":
     main()

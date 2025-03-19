@@ -1,5 +1,6 @@
 import streamlit as st
 from model.banco_dados import ProcessoDB, get_db
+from model.usuario import Usuario
 
 # Página Home após login
 def configurarConta():
@@ -21,7 +22,7 @@ def configurarConta():
             usuario = session.query(Usuario).filter_by(conta=conta).first()
             session.close()
 
-            if usuario and usuario.validar_senha(senha_atual):
+            if usuario and usuario.validarSenha(senha_atual):
                 usuario.mudarSenha(nova_senha)
                 st.success("Senha alterada com sucesso!")
             else:
@@ -39,10 +40,14 @@ def verificarProcessos():
         st.info("Nenhum processo cadastrado.")
     else:
         for processo in processos:
-            if st.button(f"🔍 {processo.nome}"):
-                st.session_state["processo_selecionado"] = processo.nome
-                st.session_state["pagina"] = "controleProcesso"
-                st.experimental_rerun()
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.write(f"📄 **{processo.nome}** - R$ {processo.valor}")
+            with col2:
+                if st.button(f"🔍 Detalhes", key=processo.nome):
+                    st.session_state["processo_selecionado"] = processo.nome
+                    st.session_state["pagina"] = "controleProcesso"
+                    st.rerun()
 
 def home():
     """ Página principal com abas de configuração e visualização de processos """
@@ -57,4 +62,4 @@ def home():
 
     if st.sidebar.button("Sair"):
         del st.session_state["usuario"]
-        st.experimental_rerun()
+        st.rerun()
