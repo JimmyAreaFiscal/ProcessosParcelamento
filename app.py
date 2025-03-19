@@ -1,12 +1,14 @@
 from view.home import home
 from view.login import login, criar_conta
 import streamlit as st 
+from view.controle_processo import controleProcesso
 
-
-# Estrutura principal
 def main():
     if "usuario" in st.session_state:
-        home()
+        if st.session_state.get("pagina") == "controleProcesso":
+            controleProcesso()
+        else:
+            home()
     else:
         pagina = st.session_state.get("pagina", "login")
 

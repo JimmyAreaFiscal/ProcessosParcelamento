@@ -10,6 +10,12 @@ engine = create_engine(DATABASE_URL, echo=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+
+# Criar sessão do banco
+def get_db():
+    return SessionLocal()
+
+
 # Modelo do banco de dados
 class ProcessoDB(Base):
     __tablename__ = "processos"
