@@ -14,34 +14,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 
-# Criar Admin ao iniciar o sistema
-def criar_admin():
-    session = SessionLocal()
-    
-    admin_usuario = st.secrets["admin"]["usuario"]
-    admin_senha = st.secrets["admin"]["senha"]
-
-    admin_existente = session.query(UsuarioDB).filter_by(conta=admin_usuario).first()
-
-    if not admin_existente:
-        salt = os.urandom(16)
-        senha_hash = hashlib.pbkdf2_hmac('sha256', admin_senha.encode(), salt, 100000)
-
-        admin = UsuarioDB(
-            conta=admin_usuario,
-            senha_hash=senha_hash,
-            salt=salt,
-            role="admin"
-        )
-
-        session.add(admin)
-        session.commit()
-        st.success("Conta de Administrador criada com sucesso!")
-
-    session.close()
-
-
-
 # Criar sessão do banco
 def get_db():
     return SessionLocal()
@@ -84,5 +56,33 @@ class UsuarioDB(Base):
 # Criar a tabela no banco de dados
 Base.metadata.create_all(bind=engine)
 
+
+
+# Criar Admin ao iniciar o sistema
+def criar_admin():
+    session = SessionLocal()
+    
+    admin_usuario = st.secrets["admin"]["usuario"]
+    admin_senha = st.secrets["admin"]["senha"]
+
+    admin_existente = session.query(UsuarioDB).filter_by(conta=admin_usuario).first()
+
+    if not admin_existente:
+        salt = os.urandom(16)
+        senha_hash = hashlib.pbkdf2_hmac('sha256', admin_senha.encode(), salt, 100000)
+
+        admin = UsuarioDB(
+            conta=admin_usuario,
+            senha_hash=senha_hash,
+            salt=salt,
+            role="admin"
+        )
+
+        session.add(admin)
+        session.commit()
+        st.success("Conta de Administrador criada com sucesso!")
+
+    session.close()
+    
 # Rodar criação do Admin ao importar este módulo
 criar_admin()
