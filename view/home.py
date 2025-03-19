@@ -32,23 +32,23 @@ def configurarConta():
                 st.error("Senha atual incorreta.")
 
 def atualizar_processo(nome, campo, valor):
-    """Atualiza um campo específico do processo no banco de dados."""
+    """Atualiza um campo específico do processo no banco de dados e registra o usuário que fez a alteração."""
     session = SessionLocal()
     processo = session.query(ProcessoDB).filter_by(nome=nome).first()
 
     if processo:
+        usuario_logado = st.session_state.get("usuario", "Desconhecido")  # Captura o usuário logado
+
         setattr(processo, campo, valor)
+        processo.usuario_ultima_alteracao = usuario_logado  # Salva o nome do usuário que alterou
 
         # Registrar data de alteração conforme o campo
         if campo == "saneado":
             processo.data_saneamento = datetime.now()
-            processo.saneado = valor
         elif campo == "sei":
             processo.data_sei = datetime.now()
-            processo.sei = valor
         elif campo == "enviado":
             processo.data_enviado = datetime.now()
-            processo.enviado = valor
 
         session.commit()
     
@@ -104,7 +104,7 @@ def home():
     """ Página principal com abas de configuração e visualização de processos """
     st.title(f"Bem-vindo, {st.session_state.get('usuario', '')}!")
 
-    aba = st.sidebar.radio("Menu", ["Configurar Conta", "Verificar Processos", "Adicionar Processos", "Painel de Administração"])
+    aba = st.sidebar.radio("Menu", ["Verificar Processos", "Adicionar Processos", "Configurar Conta", "Painel de Administração"])
 
     if aba == "Configurar Conta":
         configurarConta()
