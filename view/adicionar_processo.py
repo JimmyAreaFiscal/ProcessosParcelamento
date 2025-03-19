@@ -27,10 +27,11 @@ def adicionarProcessos():
 
     if arquivo:
         try:
+            dtypes = {'nome': str, 'valor': float}
             if arquivo.name.endswith(".xlsx"):
-                df = pd.read_excel(arquivo)
+                df = pd.read_excel(arquivo, dtype=dtypes)
             else:
-                df = pd.read_csv(arquivo)
+                df = pd.read_csv(arquivo, dtype=dtypes)
 
             # Verificar se as colunas corretas existem
             if not {"nome", "valor"}.issubset(df.columns):
