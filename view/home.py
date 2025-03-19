@@ -1,6 +1,8 @@
 import streamlit as st
 from model.banco_dados import ProcessoDB, get_db
 from model.usuario import Usuario
+from view.adicionar_processo import adicionarProcessos
+from view.admin import painelAdmin
 
 # Página Home após login
 def configurarConta():
@@ -59,6 +61,10 @@ def home():
         configurarConta()
     elif aba == "Verificar Processos":
         verificarProcessos()
+    elif aba == "Adicionar Processos":
+        adicionarProcessos()
+    elif aba == "Painel de Administração":
+        painelAdmin()
 
     if st.sidebar.button("Sair"):
         del st.session_state["usuario"]

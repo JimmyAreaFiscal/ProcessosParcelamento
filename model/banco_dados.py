@@ -49,6 +49,7 @@ class UsuarioDB(Base):
     conta = Column(String, primary_key=True, index=True)
     senha_hash = Column(LargeBinary, nullable=False)
     salt = Column(LargeBinary, nullable=False)
+    role = Column(String, default="aguardando_aprovacao") 
 
 # Criar a tabela no banco de dados
 Base.metadata.create_all(bind=engine)
