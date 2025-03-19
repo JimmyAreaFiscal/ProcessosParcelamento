@@ -41,6 +41,7 @@ def criar_conta():
                 usuario = Usuario(conta, senha)
                 usuario.criarConta()
                 st.success("Conta criada com sucesso! Volte para a tela de login.")
+                
                 if st.button("Voltar ao Login"):
                     st.session_state["pagina"] = "login"
                     st.rerun()

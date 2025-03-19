@@ -55,7 +55,7 @@ def home():
     """ Página principal com abas de configuração e visualização de processos """
     st.title(f"Bem-vindo, {st.session_state.get('usuario', '')}!")
 
-    aba = st.sidebar.radio("Menu", ["Configurar Conta", "Verificar Processos"])
+    aba = st.sidebar.radio("Menu", ["Configurar Conta", "Verificar Processos", "Adicionar Processos", "Painel de Administração"])
 
     if aba == "Configurar Conta":
         configurarConta()
