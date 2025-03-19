@@ -42,10 +42,13 @@ def atualizar_processo(nome, campo, valor):
         # Registrar data de alteração conforme o campo
         if campo == "saneado":
             processo.data_saneamento = datetime.now()
+            processo.saneado = valor
         elif campo == "sei":
             processo.data_sei = datetime.now()
+            processo.sei = valor
         elif campo == "enviado":
             processo.data_enviado = datetime.now()
+            processo.enviado = valor
 
         session.commit()
     
@@ -57,14 +60,19 @@ def verificarProcessos():
     st.subheader("Lista de Processos")
 
     session = SessionLocal()
-    processos = session.query(ProcessoDB).filter_by(enviado=False).limit(15).all()
+    processos = session.query(ProcessoDB).filter_by(enviado=False).order_by(ProcessoDB.valor.desc()).limit(15).all()
     session.close()
 
     if not processos:
         st.info("Nenhum processo cadastrado.")
     else:
         for processo in processos:
-            with st.expander(f"📄 Processo: **{processo.nome}** - Valor: R$ {processo.valor}"):
+            if processo.saneado:
+                saneado = 'NÃO'
+            else:
+                saneado = 'SIM'
+
+            with st.expander(f"📄 Processo: **{processo.nome}** - Valor: R$ {processo.valor} - Situação: Saneado: {saneado} - Processo: {processo.sei} - Não enviado!"):
                 col1, col2, col3 = st.columns(3)
 
                 # Opção de saneamento (booleano)
