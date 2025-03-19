@@ -4,6 +4,7 @@ from model.usuario import Usuario
 from view.adicionar_processo import adicionarProcessos
 from view.admin import painelAdmin
 from datetime import datetime 
+from sqlalchemy.sql import extract
 
 # Página Home após login
 def configurarConta():
@@ -105,6 +106,7 @@ def verificarProcessos():
                 
 
 
+
 def obter_estatisticas():
     """Consulta o banco e retorna estatísticas dos processos."""
     session = SessionLocal()
@@ -112,14 +114,14 @@ def obter_estatisticas():
     total_sem_sei = session.query(ProcessoDB).filter((ProcessoDB.sei == None) | (ProcessoDB.sei == "")).count()
     total_nao_enviados = session.query(ProcessoDB).filter_by(enviado=False).count()
     
-    # Filtrar processos enviados no mês atual
+    # Filtrar processos enviados no mês atual usando extract()
     mes_atual = datetime.now().month
     ano_atual = datetime.now().year
     total_enviados_mes = session.query(ProcessoDB).filter(
         ProcessoDB.enviado == True,
         ProcessoDB.data_enviado != None,
-        ProcessoDB.data_enviado.month == mes_atual,
-        ProcessoDB.data_enviado.year == ano_atual
+        extract('month', ProcessoDB.data_enviado) == mes_atual,
+        extract('year', ProcessoDB.data_enviado) == ano_atual
     ).count()
 
     session.close()
