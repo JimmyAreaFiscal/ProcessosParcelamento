@@ -77,7 +77,7 @@ def verificarProcessos():
 
                 # Opção de saneamento (booleano)
                 with col1:
-                    if st.button(f"{'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
+                    if st.button(f"Marcar como {'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
                         atualizar_processo(processo.nome, "saneado", not processo.saneado)
                         st.rerun()
 
@@ -94,6 +94,11 @@ def verificarProcessos():
                     if st.button(f"{'📩 Enviado' if processo.enviado else '📤 Não Enviado'}", key=f"enviado_{processo.nome}"):
                         atualizar_processo(processo.nome, "enviado", not processo.enviado)
                         st.rerun()
+
+                if st.button(f"🔍 Detalhes", key=processo.nome):
+                    st.session_state["processo_selecionado"] = processo.nome
+                    st.session_state["pagina"] = "controleProcesso"
+                    st.rerun()
 
 def home():
     """ Página principal com abas de configuração e visualização de processos """
