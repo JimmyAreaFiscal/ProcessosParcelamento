@@ -19,7 +19,8 @@ def login():
                 else:
                     st.error("Conta ou senha incorretos.")
             except:
-                st.error("Erro ao tentar logar. Verifique os dados.")
+                raise
+            #     st.error("Erro ao tentar logar. Verifique os dados.")
         else:
             st.warning("Preencha todos os campos.")
 

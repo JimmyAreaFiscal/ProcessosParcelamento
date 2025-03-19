@@ -2,6 +2,7 @@ import streamlit as st
 from model.banco_dados import ProcessoDB, get_db, SessionLocal
 from model.usuario import Usuario
 from view.adicionar_processo import adicionarProcessos
+from view.controle_processo import verificarProcessos
 from view.admin import painelAdmin
 from datetime import datetime 
 from sqlalchemy.sql import extract
@@ -32,80 +33,57 @@ def configurarConta():
             else:
                 st.error("Senha atual incorreta.")
 
-def atualizar_processo(nome, campo, valor):
-    """Atualiza um campo específico do processo no banco de dados e registra o usuário que fez a alteração."""
-    session = SessionLocal()
-    processo = session.query(ProcessoDB).filter_by(nome=nome).first()
-
-    if processo:
-        usuario_logado = st.session_state.get("usuario", "Desconhecido")  # Captura o usuário logado
-
-        setattr(processo, campo, valor)
-        processo.usuario_ultima_alteracao = usuario_logado  # Salva o nome do usuário que alterou
-
-        # Registrar data de alteração conforme o campo
-        if campo == "saneado":
-            processo.data_saneamento = datetime.now()
-        elif campo == "sei":
-            processo.data_sei = datetime.now()
-        elif campo == "enviado":
-            processo.data_enviado = datetime.now()
-
-        session.commit()
-    
-    session.close()
 
 
-def verificarProcessos():
-    """ Aba para listar e acessar processos existentes """
-    st.subheader("Lista de Processos")
 
-    session = SessionLocal()
-    processos = session.query(ProcessoDB).filter_by(enviado=False).order_by(ProcessoDB.valor.desc()).limit(15).all()
-    session.close()
+# def verificarProcessos():
+#     """ Aba para listar e acessar processos existentes """
+#     st.subheader("Lista de Processos")
 
-    if not processos:
-        st.info("Nenhum processo cadastrado.")
-    else:
-        for processo in processos:
-            if processo.saneado:
-                saneado = 'NÃO'
-            else:
-                saneado = 'SIM'
+#     session = SessionLocal()
+#     processos = session.query(ProcessoDB).filter_by(enviado=False).order_by(ProcessoDB.valor.desc()).limit(15).all()
+#     session.close()
 
-            with st.expander(f"📄 Processo: **{processo.nome}**         Situação: Saneado: {saneado}"):
+#     if not processos:
+#         st.info("Nenhum processo cadastrado.")
+#     else:
+#         for processo in processos:
+#             if processo.saneado:
+#                 saneado = 'NÃO'
+#             else:
+#                 saneado = 'SIM'
+
+#             with st.expander(f"📄 Processo: **{processo.nome}**         Situação: Saneado: {saneado}"):
                 
-                col1, col2 = st.columns(2)
+#                 col1, col2 = st.columns(2)
 
-                with col1:
-                    st.text(f"Valor: R$ {processo.valor}")
-                    st.text(f"Situação: Saneado: {saneado}")
-                    st.text(f"Processo: {processo.sei}")
-                    if st.button(f"🔍 Detalhes", key=processo.nome):
-                        st.session_state["processo_selecionado"] = processo.nome
-                        st.session_state["pagina"] = "controleProcesso"
-                        st.rerun()
+#                 with col1:
+#                     st.text(f"Valor: R$ {processo.valor}")
+#                     st.text(f"Situação: Saneado: {saneado}")
+#                     st.text(f"Processo: {processo.sei}")
+#                     if st.button(f"🔍 Detalhes", key=processo.nome):
+#                         st.session_state["processo_selecionado"] = processo.nome
+#                         st.session_state["pagina"] = "controleProcesso"
+#                         st.rerun()
                 
 
-                # Opção de saneamento (booleano)
-                with col2:
-                    if st.button(f"Marcar como {'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
-                        atualizar_processo(processo.nome, "saneado", not processo.saneado)
-                        st.rerun()
+#                 # Opção de saneamento (booleano)
+#                 with col2:
+#                     if st.button(f"Marcar como {'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
+#                         atualizar_processo(processo.nome, "saneado", not processo.saneado)
+#                         st.rerun()
 
-                    sei_input = st.text_input("Número SEI:", value=processo.sei or "", key=f"sei_{processo.nome}")
-                    if st.button("Salvar SEI", key=f"salvar_sei_{processo.nome}"):
-                        atualizar_processo(processo.nome, "sei", sei_input)
-                        st.success("SEI atualizado com sucesso!")
-                        st.rerun()
+#                     sei_input = st.text_input("Número SEI:", value=processo.sei or "", key=f"sei_{processo.nome}")
+#                     if st.button("Salvar SEI", key=f"salvar_sei_{processo.nome}"):
+#                         atualizar_processo(processo.nome, "sei", sei_input)
+#                         st.success("SEI atualizado com sucesso!")
+#                         st.rerun()
 
-                    if st.button(f"{'📩 Enviado' if processo.enviado else '📤 Não Enviado'}", key=f"enviado_{processo.nome}"):
-                        atualizar_processo(processo.nome, "enviado", not processo.enviado)
-                        st.rerun()
+#                     if st.button(f"Marcar como {'📩 Enviado' if not processo.enviado else '📤 Não Enviado'}", key=f"enviado_{processo.nome}"):
+#                         atualizar_processo(processo.nome, "enviado", not processo.enviado)
+#                         st.rerun()
 
                 
-
-
 
 def obter_estatisticas():
     """Consulta o banco e retorna estatísticas dos processos."""
