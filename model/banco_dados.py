@@ -60,14 +60,13 @@ Base.metadata.create_all(bind=engine)
 
 # Criar Admin ao iniciar o sistema
 def criar_admin():
+    """Cria um novo Administrador SEM verificar se já existe."""
     session = SessionLocal()
-    
-    admin_usuario = st.secrets["admin"]["usuario"]
-    admin_senha = st.secrets["admin"]["senha"]
 
-    admin_existente = session.query(UsuarioDB).filter_by(conta=admin_usuario).first()
+    try:
+        admin_usuario = st.secrets["admin"]["usuario"]
+        admin_senha = st.secrets["admin"]["senha"]
 
-    if not admin_existente:
         salt = os.urandom(16)
         senha_hash = hashlib.pbkdf2_hmac('sha256', admin_senha.encode(), salt, 100000)
 
@@ -80,9 +79,13 @@ def criar_admin():
 
         session.add(admin)
         session.commit()
-        st.success("Conta de Administrador criada com sucesso!")
-
-    session.close()
+        st.success("Novo Administrador criado com sucesso!")
+        
+    except Exception as e:
+        st.error(f"Erro ao criar conta Admin: {e}")
     
+    finally:
+        session.close()
+
 # Rodar criação do Admin ao importar este módulo
 criar_admin()
