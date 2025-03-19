@@ -1,8 +1,9 @@
 import streamlit as st
-from model.banco_dados import ProcessoDB, get_db
+from model.banco_dados import ProcessoDB, get_db, SessionLocal
 from model.usuario import Usuario
 from view.adicionar_processo import adicionarProcessos
 from view.admin import painelAdmin
+from datetime import datetime 
 
 # Página Home após login
 def configurarConta():
@@ -30,26 +31,61 @@ def configurarConta():
             else:
                 st.error("Senha atual incorreta.")
 
+def atualizar_processo(nome, campo, valor):
+    """Atualiza um campo específico do processo no banco de dados."""
+    session = SessionLocal()
+    processo = session.query(ProcessoDB).filter_by(nome=nome).first()
+
+    if processo:
+        setattr(processo, campo, valor)
+
+        # Registrar data de alteração conforme o campo
+        if campo == "saneado":
+            processo.data_saneamento = datetime.now()
+        elif campo == "sei":
+            processo.data_sei = datetime.now()
+        elif campo == "enviado":
+            processo.data_enviado = datetime.now()
+
+        session.commit()
+    
+    session.close()
+
+
 def verificarProcessos():
     """ Aba para listar e acessar processos existentes """
     st.subheader("Lista de Processos")
 
-    session = get_db()
-    processos = session.query(ProcessoDB).all()
+    session = SessionLocal()
+    processos = session.query(ProcessoDB).filter_by(enviado=False).limit(15).all()
     session.close()
 
     if not processos:
         st.info("Nenhum processo cadastrado.")
     else:
         for processo in processos:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                st.write(f"📄 **{processo.nome}** - R$ {processo.valor}")
-            with col2:
-                if st.button(f"🔍 Detalhes", key=processo.nome):
-                    st.session_state["processo_selecionado"] = processo.nome
-                    st.session_state["pagina"] = "controleProcesso"
-                    st.rerun()
+            with st.expander(f"📄 Processo: **{processo.nome}** - Valor: R$ {processo.valor}"):
+                col1, col2, col3 = st.columns(3)
+
+                # Opção de saneamento (booleano)
+                with col1:
+                    if st.button(f"{'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
+                        atualizar_processo(processo.nome, "saneado", not processo.saneado)
+                        st.rerun()
+
+                # Campo para editar/remover SEI
+                with col2:
+                    sei_input = st.text_input("Número SEI:", value=processo.sei or "", key=f"sei_{processo.nome}")
+                    if st.button("Salvar SEI", key=f"salvar_sei_{processo.nome}"):
+                        atualizar_processo(processo.nome, "sei", sei_input)
+                        st.success("SEI atualizado com sucesso!")
+                        st.rerun()
+
+                # Opção de envio (booleano)
+                with col3:
+                    if st.button(f"{'📩 Enviado' if processo.enviado else '📤 Não Enviado'}", key=f"enviado_{processo.nome}"):
+                        atualizar_processo(processo.nome, "enviado", not processo.enviado)
+                        st.rerun()
 
 def home():
     """ Página principal com abas de configuração e visualização de processos """
