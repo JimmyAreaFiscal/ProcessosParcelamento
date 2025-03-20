@@ -78,7 +78,7 @@ def verificarProcessos():
             saneado = "SIM" if processo.saneado else "NÃO"
 
             with st.expander(f"📄 Processo: **{processo.nome}**"):
-                col1, col2, col3 = st.columns(3)
+                col1, col2 = st.columns([1, 2])
 
                 with col1:
                     st.subheader('Informações do Processo')
