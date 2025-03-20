@@ -81,6 +81,7 @@ def verificarProcessos():
                 col1, col2, col3 = st.columns(3)
 
                 with col1:
+                    st.subheader('Informações do Processo')
                     st.text(f"Saneado: {saneado}")
                     st.text(f'Processo: {processo.sei}')
                     st.text(f'Valor em Débito : R$ {processo.valor}')
@@ -92,17 +93,18 @@ def verificarProcessos():
 
                 # Opção de saneamento (booleano)
                 with col2:
-                    if st.button(f"{'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
+                    st.subheader('Alterar informações do Processo')
+                    if st.button(f"Mudar para: {'✅ Saneado' if not processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
                         atualizar_processo(processo.nome, "saneado", not processo.saneado)
                         st.rerun()
                     
-                    sei_input = st.text_input("Número SEI:", value=processo.sei or "", key=f"sei_{processo.nome}")
-                    if st.button("Salvar SEI", key=f"salvar_sei_{processo.nome}"):
+                    sei_input = st.text_input("Alterar número do SEI:", value=processo.sei or "", key=f"sei_{processo.nome}")
+                    if st.button("Salvar", key=f"salvar_sei_{processo.nome}"):
                         atualizar_processo(processo.nome, "sei", sei_input)
                         st.success("SEI atualizado com sucesso!")
                         st.rerun()
 
-                    if st.button(f"{'📩 Enviado' if processo.enviado else '📤 Não Enviado'}", key=f"enviado_{processo.nome}"):
+                    if st.button(f"{'📩 Enviar' if not processo.enviado else '📤 Cancelar envio'}", key=f"enviado_{processo.nome}"):
                         atualizar_processo(processo.nome, "enviado", not processo.enviado)
                         st.rerun()
 
