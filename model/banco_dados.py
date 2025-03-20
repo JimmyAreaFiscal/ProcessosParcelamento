@@ -19,7 +19,6 @@ def get_db():
     return SessionLocal()
 
 
-# Modelo do banco de dados
 class ProcessoDB(Base):
     __tablename__ = "processos"
 
@@ -28,12 +27,13 @@ class ProcessoDB(Base):
     saneado = Column(Boolean, default=False)
     sei = Column(String, nullable=True)
     enviado = Column(Boolean, default=False)
-    
-    # Novas colunas para armazenar datas
+
+    # Novos campos
     data_inclusao = Column(DateTime, default=datetime.utcnow)
     data_saneamento = Column(DateTime, nullable=True)
     data_sei = Column(DateTime, nullable=True)
     data_enviado = Column(DateTime, nullable=True)
+    usuario_ultima_alteracao = Column(String, nullable=True)  # Nome do usuário que fez a última alteração
 
 class ProcessoHistoricoDB(Base):
     __tablename__ = "historico_processos"
@@ -80,7 +80,7 @@ def criar_admin():
         session.add(admin)
         session.commit()
         st.success("Novo Administrador criado com sucesso!")
-        
+
     except Exception as e:
         st.error(f"Erro ao criar conta Admin: {e}")
     
