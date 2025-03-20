@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, Float, Boolean, LargeBinary, DateTime 
+from sqlalchemy import create_engine, Column, String, Float, Boolean, LargeBinary, DateTime, Integer, ForeignKey
 from datetime import datetime
 from sqlalchemy.orm import sessionmaker, declarative_base
 import streamlit as st 
@@ -51,10 +51,23 @@ class UsuarioDB(Base):
     conta = Column(String, primary_key=True, index=True)
     senha_hash = Column(LargeBinary, nullable=False)
     salt = Column(LargeBinary, nullable=False)
-    role = Column(String, default="aguardando_aprovacao") 
+    role = Column(String, default="aguardando_aprovacao")
+    precisa_redefinir_senha = Column(Boolean, default=False)  # Indica se precisa redefinir senha no próximo login
+
+
+class LogUsuarios(Base):
+    __tablename__ = "log_usuarios"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    conta_usuario = Column(String, ForeignKey("usuarios.conta"), nullable=False)
+    administrador = Column(String, nullable=False)  # Quem fez a alteração
+    data_modificacao = Column(DateTime, default=datetime.utcnow)
+    acao = Column(String, nullable=False)  # Exemplo: "Senha resetada pelo admin"
 
 # Criar a tabela no banco de dados
 Base.metadata.create_all(bind=engine)
+
+
 
 
 
@@ -86,6 +99,37 @@ def criar_admin():
     
     finally:
         session.close()
+
+
+def resetar_senha(conta_usuario, admin_responsavel):
+    """Reseta a senha do usuário e registra no log."""
+    session = SessionLocal()
+
+    usuario = session.query(UsuarioDB).filter_by(conta=conta_usuario).first()
+    if usuario:
+        # Gerar um novo salt e hash para a senha padrão temporária
+        salt = os.urandom(16)
+        senha_temporaria = "Reset@123"
+        senha_hash = hashlib.pbkdf2_hmac('sha256', senha_temporaria.encode(), salt, 100000)
+
+        # Atualiza os dados do usuário
+        usuario.senha_hash = senha_hash
+        usuario.salt = salt
+        usuario.precisa_redefinir_senha = True  # O usuário será obrigado a mudar a senha no próximo login
+
+        # Criar log da alteração
+        log = LogUsuarios(
+            conta_usuario=conta_usuario,
+            administrador=admin_responsavel,
+            acao="Senha resetada pelo admin"
+        )
+        session.add(log)
+
+        session.commit()
+        session.close()
+        return True
+    return False
+
 
 # Rodar criação do Admin ao importar este módulo
 criar_admin()

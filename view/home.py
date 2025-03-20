@@ -6,6 +6,7 @@ from view.controle_processo import verificarProcessos
 from view.admin import painelAdmin
 from datetime import datetime 
 from sqlalchemy.sql import extract
+from sqlalchemy.exc import ProgrammingError
 
 # Página Home após login
 def configurarConta():
@@ -88,23 +89,37 @@ def configurarConta():
 def obter_estatisticas():
     """Consulta o banco e retorna estatísticas dos processos."""
     session = SessionLocal()
-    total_nao_saneados = session.query(ProcessoDB).filter_by(saneado=False).count()
-    total_sem_sei = session.query(ProcessoDB).filter((ProcessoDB.sei == None) | (ProcessoDB.sei == "")).count()
-    total_nao_enviados = session.query(ProcessoDB).filter_by(enviado=False).count()
     
-    # Filtrar processos enviados no mês atual usando extract()
-    mes_atual = datetime.now().month
-    ano_atual = datetime.now().year
-    total_enviados_mes = session.query(ProcessoDB).filter(
-        ProcessoDB.enviado == True,
-        ProcessoDB.data_enviado != None,
-        extract('month', ProcessoDB.data_enviado) == mes_atual,
-        extract('year', ProcessoDB.data_enviado) == ano_atual
-    ).count()
+    try:
+        # Verifica se há processos cadastrados
+        total_processos = session.query(ProcessoDB).count()
+        
+        if total_processos == 0:
+            return "Não há processos", "Não há processos", "Não há processos", "Não há processos"
 
-    session.close()
+        total_nao_saneados = session.query(ProcessoDB).filter_by(saneado=False).count()
+        total_sem_sei = session.query(ProcessoDB).filter((ProcessoDB.sei == None) | (ProcessoDB.sei == "")).count()
+        total_nao_enviados = session.query(ProcessoDB).filter_by(enviado=False).count()
 
-    return total_nao_saneados, total_sem_sei, total_nao_enviados, total_enviados_mes
+        # Filtrar processos enviados no mês atual
+        mes_atual = datetime.now().month
+        ano_atual = datetime.now().year
+        total_enviados_mes = session.query(ProcessoDB).filter(
+            ProcessoDB.enviado == True,
+            ProcessoDB.data_enviado != None,
+            extract('month', ProcessoDB.data_enviado) == mes_atual,
+            extract('year', ProcessoDB.data_enviado) == ano_atual
+        ).count()
+
+        return total_nao_saneados, total_sem_sei, total_nao_enviados, total_enviados_mes
+
+    except ProgrammingError as e:
+        st.error("Erro ao consultar o banco de dados. Verifique se as tabelas estão corretas.")
+        print(f"Erro: {e}")
+        return "Erro", "Erro", "Erro", "Erro"
+
+    finally:
+        session.close()
 
 def home():
     """ Página principal com abas e estatísticas no sidebar """

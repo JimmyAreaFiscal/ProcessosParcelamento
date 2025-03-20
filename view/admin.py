@@ -1,5 +1,5 @@
 import streamlit as st
-from model.banco_dados import SessionLocal
+from model.banco_dados import SessionLocal, resetar_senha
 from model.usuario import UsuarioDB
 
 def painelAdmin():
@@ -47,5 +47,13 @@ def painelAdmin():
                     session.commit()
                     st.success(f"Permissão de {u.conta} alterada para {nova_role}.")
                     st.rerun()
+
+                # Opção de resetar senha
+                if st.button(f"🔑 Resetar Senha {u.conta}", key=f"resetar_{u.conta}"):
+                    if resetar_senha(u.conta, usuario.conta):
+                        st.success(f"Senha de {u.conta} foi resetada para 'Reset@123'. O usuário deverá alterá-la no próximo login.")
+                        st.rerun()
+                    else:
+                        st.error("Erro ao resetar senha.")
 
     session.close()

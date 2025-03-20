@@ -1,28 +1,65 @@
 import streamlit as st
 from model.usuario import Usuario  # Importa a classe Usuario do código anterior
+from model.banco_dados import SessionLocal, UsuarioDB
 
 # Página de login
 def login():
-    st.title("Login")
+    """Tela de login do sistema"""
+    st.title("🔐 Login")
 
-    conta = st.text_input("Usuário", key="login_usuario")
-    senha = st.text_input("Senha", type="password", key="login_senha")
+    conta = st.text_input("Usuário")
+    senha = st.text_input("Senha", type="password")
 
     if st.button("Entrar"):
-        if conta and senha:
-            try:
-                usuario = Usuario(conta, senha)
-                if usuario.validarSenha(senha):
-                    st.session_state["usuario"] = conta  # Guarda a sessão
-                    st.success("Login bem-sucedido!")
-                    st.rerun()  # Redireciona para a home
-                else:
-                    st.error("Conta ou senha incorretos.")
-            except:
-                raise
-            #     st.error("Erro ao tentar logar. Verifique os dados.")
+        session = SessionLocal()
+        usuario = session.query(UsuarioDB).filter_by(conta=conta).first()
+        user = Usuario(conta=usuario.conta, senha=senha)
+
+        if usuario and user.validarSenha(senha):
+            if usuario.precisa_redefinir_senha:
+                st.session_state["usuario_redefinir"] = conta  # Armazena o usuário para redefinir senha
+                st.session_state["pagina"] = "redefinir_senha"
+                st.rerun()
+            else:
+                st.session_state["usuario"] = conta
+                st.session_state["pagina"] = "home"
+                st.rerun()
         else:
+            st.error("Usuário ou senha incorretos.")
+
+def redefinir_senha():
+    """Página para redefinir senha após um reset pelo admin"""
+    st.title("🔑 Redefinir Senha")
+
+    conta = st.session_state.get("usuario_redefinir", "")
+    if not conta:
+        st.error("Erro ao carregar usuário.")
+        return
+
+
+    nova_senha = st.text_input("Nova Senha", type="password")
+    confirmar_senha = st.text_input("Confirme a Nova Senha", type="password")
+    
+    user = Usuario(conta=conta, senha='')
+
+    if st.button("Alterar Senha"):
+        if not nova_senha or not confirmar_senha:
             st.warning("Preencha todos os campos.")
+        elif nova_senha != confirmar_senha:
+            st.error("As senhas não coincidem.")
+        else:
+            session = SessionLocal()
+            usuario = session.query(UsuarioDB).filter_by(conta=conta).first()
+
+            if usuario:
+                user.mudarSenha(usuario, nova_senha)
+                usuario.precisa_redefinir_senha = False  # Remove a necessidade de redefinição
+                session.commit()
+                session.close()
+                st.success("Senha alterada com sucesso! Faça login novamente.")
+                del st.session_state["usuario_redefinir"]
+                st.session_state["pagina"] = "login"
+                st.rerun()
 
 # Página de criação de conta
 def criar_conta():
