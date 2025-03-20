@@ -35,10 +35,15 @@ def painelAdmin():
                     st.rerun()
 
             if usuario.role == "admin":  # Apenas admin pode promover usuários
+                opcoes_roles = ["Usuario", "Auditor", "admin"]
+                
+                # Verificar se a role atual do usuário existe na lista
+                index_atual = opcoes_roles.index(u.role) if u.role in opcoes_roles else 0  
+
                 nova_role = st.selectbox(
                     f"Alterar role de {u.conta}",
-                    ["Usuario", "Auditor", "admin"],
-                    index=["Usuario", "Auditor", "admin"].index(u.role),
+                    opcoes_roles,
+                    index=index_atual,  # Se a role for inválida, define "Usuario" como padrão
                     key=f"role_{u.conta}"
                 )
 
@@ -47,13 +52,5 @@ def painelAdmin():
                     session.commit()
                     st.success(f"Permissão de {u.conta} alterada para {nova_role}.")
                     st.rerun()
-
-                # Opção de resetar senha
-                if st.button(f"🔑 Resetar Senha {u.conta}", key=f"resetar_{u.conta}"):
-                    if resetar_senha(u.conta, usuario.conta):
-                        st.success(f"Senha de {u.conta} foi resetada para 'Reset@123'. O usuário deverá alterá-la no próximo login.")
-                        st.rerun()
-                    else:
-                        st.error("Erro ao resetar senha.")
 
     session.close()

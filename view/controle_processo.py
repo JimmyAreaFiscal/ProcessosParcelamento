@@ -56,7 +56,7 @@ def exportar_processos():
 
     # Criar um buffer de memória para salvar o arquivo Excel
     output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
         df.to_excel(writer, index=False, sheet_name="Processos")
         writer.close()
 
@@ -77,33 +77,36 @@ def verificarProcessos():
             ultimo_usuario = processo.usuario_ultima_alteracao or "N/A"
             saneado = "SIM" if processo.saneado else "NÃO"
 
-            with st.expander(f"📄 Processo: **{processo.nome}** - Valor: R$ {processo.valor} - Saneado: {saneado} - Processo: {processo.sei} - Última alteração por: {ultimo_usuario}"):
+            with st.expander(f"📄 Processo: **{processo.nome}**"):
                 col1, col2, col3 = st.columns(3)
 
-                # Opção de saneamento (booleano)
                 with col1:
+                    st.text(f"Saneado: {saneado}")
+                    st.text(f'Processo: {processo.sei}')
+                    st.text(f'Valor em Débito : R$ {processo.valor}')
+                    st.text(f'Última alteração por: {ultimo_usuario}')
+                    if st.button(f"🔍 Detalhes", key=processo.nome):
+                        st.session_state["processo_selecionado"] = processo.nome
+                        st.session_state["pagina"] = "controleProcesso"
+                        st.rerun()
+
+                # Opção de saneamento (booleano)
+                with col2:
                     if st.button(f"{'✅ Saneado' if processo.saneado else '❌ Não Saneado'}", key=f"saneado_{processo.nome}"):
                         atualizar_processo(processo.nome, "saneado", not processo.saneado)
                         st.rerun()
-
-                # Campo para editar/remover SEI
-                with col2:
+                    
                     sei_input = st.text_input("Número SEI:", value=processo.sei or "", key=f"sei_{processo.nome}")
                     if st.button("Salvar SEI", key=f"salvar_sei_{processo.nome}"):
                         atualizar_processo(processo.nome, "sei", sei_input)
                         st.success("SEI atualizado com sucesso!")
                         st.rerun()
 
-                # Opção de envio (booleano)
-                with col3:
                     if st.button(f"{'📩 Enviado' if processo.enviado else '📤 Não Enviado'}", key=f"enviado_{processo.nome}"):
                         atualizar_processo(processo.nome, "enviado", not processo.enviado)
                         st.rerun()
 
-                if st.button(f"🔍 Detalhes", key=processo.nome):
-                    st.session_state["processo_selecionado"] = processo.nome
-                    st.session_state["pagina"] = "controleProcesso"
-                    st.rerun()
+                
 
     # Botão para exportar todos os processos para Excel
     st.subheader("📥 Exportar Processos")

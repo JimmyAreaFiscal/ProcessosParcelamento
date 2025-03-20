@@ -28,7 +28,7 @@ def main():
                 st.rerun()
         elif pagina == "criar_conta":
             criar_conta()
-            if st.button("Voltar ao Login"):
+            if st.button("Voltar ao Login", key="voltar_login"):
                 st.session_state["pagina"] = "login"
                 st.rerun()
 
