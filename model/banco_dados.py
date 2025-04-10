@@ -45,8 +45,6 @@ class UsuarioDB(Base):
     __tablename__ = "usuarios"
 
     conta = Column(String, primary_key=True, index=True)
-    senha_hash = Column(LargeBinary, nullable=True)  # Somente preenchido para admin
-    salt = Column(LargeBinary, nullable=True)        # Somente preenchido para admin
     role = Column(String, default="aguardando_aprovacao")
     precisa_redefinir_senha = Column(Boolean, default=False)  # Válido apenas para admin
 
@@ -64,7 +62,7 @@ class DecisoesJudiciais(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     cpf_contribuinte = Column(String, nullable=False)
-    data_decisao = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
+    data_decisao = Column(DateTime, default=datetime.now(datetime.timezone.utc), nullable=False)
     numero_processo = Column(String, nullable=False)
     efeitos_fk = Column(Integer, ForeignKey("efeitos_decisoes_judiciais.id"), nullable=False)
     situacao = Column(String, nullable=False)
