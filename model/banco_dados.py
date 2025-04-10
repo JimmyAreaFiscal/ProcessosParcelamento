@@ -64,7 +64,7 @@ class DecisoesJudiciais(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     cpf_contribuinte = Column(String, nullable=False)
-    data_decisao = Column(DateTime, default=datetime.now(datetime.timezone.utc), nullable=False)
+    data_decisao = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     numero_processo = Column(String, nullable=False)
     efeitos_fk = Column(Integer, ForeignKey("efeitos_decisoes_judiciais.id"), nullable=False)
     situacao = Column(String, nullable=False)
