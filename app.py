@@ -1,9 +1,8 @@
 from view.home import home, configurarConta
-from view.login import login, criar_conta
+from view.login import login, criar_conta, redefinir_senha
 from model.banco_dados import SessionLocal, UsuarioDB
 import streamlit as st 
 from view.controle_processo import controleProcesso
-
 
 def main():
     if "usuario" in st.session_state:
@@ -16,6 +15,8 @@ def main():
             configurarConta()
         elif st.session_state.get("pagina") == "controleProcesso":
             controleProcesso()
+        elif st.session_state.get("pagina") == "redefinir_senha":
+            redefinir_senha()
         else:
             home()
     else:
@@ -31,6 +32,8 @@ def main():
             if st.button("Voltar ao Login", key="voltar_login"):
                 st.session_state["pagina"] = "login"
                 st.rerun()
+        elif pagina == "redefinir_senha":
+            redefinir_senha()
 
 if __name__ == "__main__":
     main()

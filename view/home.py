@@ -4,9 +4,14 @@ from model.usuario import Usuario
 from view.adicionar_processo import adicionarProcessos
 from view.controle_processo import verificarProcessos
 from view.admin import painelAdmin
+from view.decisoes import decisoes_judiciais_view
 from datetime import datetime 
 from sqlalchemy.sql import extract
 from sqlalchemy.exc import ProgrammingError
+from model.usuario import UsuarioDB
+
+
+
 
 # Página Home após login
 def configurarConta():
@@ -136,20 +141,49 @@ def home():
         st.write(f"📤 **Não Enviados:** {total_nao_enviados}")
         st.write(f"📩 **Enviados neste mês:** {total_enviados_mes}")
 
-    # Criando abas estilizadas
-    aba1, aba2, aba3, aba4 = st.tabs(["📋 Verificar Processos", "➕ Adicionar Processos", "⚙️ Configurar Conta", "🛠️ Painel de Administração"])
 
-    with aba1:
-        verificarProcessos()
+    session = SessionLocal()
+    usuario = session.query(UsuarioDB).filter_by(conta=st.session_state["usuario"]).first()
+    session.close()
 
-    with aba2:
-        adicionarProcessos()
 
-    with aba3:
-        configurarConta()
+    if usuario.role == "Auditor":
+        aba1, aba2, aba3, aba4, aba5 = st.tabs([
+            "📋 Verificar Processos", 
+            "➕ Adicionar Processos", 
+            "⚖️ Decisões Judiciais",
+            "⚙️ Configurar Conta", 
+            "🛠️ Painel de Administração"
+        ])
 
-    with aba4:
-        painelAdmin()
+        with aba1:
+            verificarProcessos()
+        with aba2:
+            adicionarProcessos()
+        with aba3:
+            decisoes_judiciais_view()
+        with aba4:
+            painelAdmin()
+        with aba5:
+            configurarConta()
+            
+
+    elif usuario.role == "Usuario":
+        aba1, aba2, aba3 = st.tabs([
+            "📋 Verificar Processos",  
+            "⚖️ Decisões Judiciais",
+            "⚙️ Configurar Conta"
+        ])
+
+        with aba1:
+            verificarProcessos()
+        with aba2:
+            decisoes_judiciais_view()
+        with aba3:
+            configurarConta()
+
+    else:
+        st.warning("Perfil não autorizado para acessar esta área.")
 
     # Botão de saída no final da página
     if st.button("🚪 Sair"):

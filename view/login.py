@@ -1,52 +1,107 @@
 import streamlit as st
 from model.usuario import Usuario  # Importa a classe Usuario do código anterior
+from model.banco_dados import SessionLocal
+from model.usuario import UsuarioDB
+import hashlib
+import os 
 
 # Página de login
 def login():
-    st.title("Login")
 
-    conta = st.text_input("Usuário", key="login_usuario")
-    senha = st.text_input("Senha", type="password", key="login_senha")
+    st.set_page_config(page_title='Sistema de Controle de Parcelamentos da Divisão de Parcelamentos', layout='centered')
 
-    if st.button("Entrar"):
-        if conta and senha:
-            try:
-                usuario = Usuario(conta, senha)
-                if usuario.validarSenha(senha):
-                    st.session_state["usuario"] = conta  # Guarda a sessão
-                    st.success("Login bem-sucedido!")
-                    st.rerun()  # Redireciona para a home
+    # Captura e-mail da sessão OAuth
+    email_google = st.experimental_user.email if hasattr(st, "experimental_user") and st.experimental_user else None
+
+    # Se for o admin definido no secrets, autentica via formulário
+    admin_email = st.secrets["admin"]["usuario"]
+
+    if email_google and email_google == admin_email:
+        st.title("Login de Administrador")
+        senha = st.text_input("Senha do Administrador", type="password")
+
+        if st.button("Entrar como Admin"):
+            session = SessionLocal()
+            usuario = session.query(UsuarioDB).filter_by(conta=admin_email).first()
+            session.close()
+
+            if usuario:
+                senha_hash = hashlib.pbkdf2_hmac('sha256', senha.encode(), usuario.salt, 100000)
+                if senha_hash == usuario.senha_hash:
+                    st.session_state["usuario"] = admin_email
+                    st.session_state["pagina"] = "home"
+                    st.success("Login de administrador realizado com sucesso!")
+                    st.rerun()
                 else:
-                    st.error("Conta ou senha incorretos.")
-            except:
-                raise
-            #     st.error("Erro ao tentar logar. Verifique os dados.")
-        else:
-            st.warning("Preencha todos os campos.")
+                    st.error("Senha incorreta.")
+            else:
+                st.error("Conta de administrador não encontrada.")
 
-# Página de criação de conta
+        return
+
+    # Login padrão via Google OAuth
+    if not email_google:
+        st.info("Faça login com sua conta Google no topo direito da página.")
+        return
+
+    st.success(f"Autenticado como: {email_google}")
+
+    session = SessionLocal()
+    usuario = session.query(UsuarioDB).filter_by(conta=email_google).first()
+
+    if not usuario:
+        novo_usuario = UsuarioDB(conta=email_google, role="aguardando_aprovacao", precisa_redefinir_senha=False, salt=b"", senha_hash=b"")
+        session.add(novo_usuario)
+        session.commit()
+        st.warning("Usuário autenticado, mas não cadastrado no sistema. Aguarde aprovação de um administrador.")
+        session.close()
+        return
+
+    if usuario.precisa_redefinir_senha:
+        st.session_state["usuario_redefinir"] = email_google
+        st.session_state["pagina"] = "redefinir_senha"
+        st.rerun()
+
+    st.session_state["usuario"] = email_google
+    st.session_state["pagina"] = "home"
+    session.close()
+    st.rerun()
+
+# Desativado para usuários comuns
 def criar_conta():
-    st.title("Criar Conta")
+    st.warning("A criação de conta está desativada. Apenas administradores podem autorizar novos usuários.")
 
-    conta = st.text_input("Usuário", key="criar_usuario")
-    senha = st.text_input("Senha", type="password", key="criar_senha")
-    senha_confirma = st.text_input("Confirme a Senha", type="password", key="criar_senha_confirma")
+# Página de redefinição de senha (somente para admin)
+def redefinir_senha():
+    st.title("Redefinir Senha")
 
-    if st.button("Criar Conta"):
-        if not conta or not senha or not senha_confirma:
-            st.warning("Preencha todos os campos.")
-        elif senha != senha_confirma:
+    conta = st.session_state.get("usuario_redefinir", "")
+    if not conta:
+        st.error("Usuário não identificado para redefinição.")
+        return
+
+    nova = st.text_input("Nova senha", type="password")
+    confirmar = st.text_input("Confirme a nova senha", type="password")
+
+    if st.button("Salvar nova senha"):
+        if not nova or not confirmar:
+            st.warning("Preencha os dois campos.")
+        elif nova != confirmar:
             st.error("As senhas não coincidem.")
         else:
-            try:
-                usuario = Usuario(conta, senha)
-                usuario.criarConta()
-                st.success("Conta criada com sucesso! Volte para a tela de login.")
-                
-                if st.button("Voltar ao Login"):
-                    st.session_state["pagina"] = "login"
-                    st.rerun()
-            except ValueError:
-                st.error("Usuário já existe. Escolha outro nome de usuário.")
-            except:
-                st.error("Erro ao criar conta. Tente novamente.")
+            session = SessionLocal()
+            usuario = session.query(UsuarioDB).filter_by(conta=conta).first()
+            if usuario:
+                salt = os.urandom(16)
+                senha_hash = hashlib.pbkdf2_hmac('sha256', nova.encode(), salt, 100000)
+                usuario.senha_hash = senha_hash
+                usuario.salt = salt
+                usuario.precisa_redefinir_senha = False
+                session.commit()
+                st.success("Senha redefinida com sucesso!")
+                st.session_state["usuario"] = conta
+                st.session_state["pagina"] = "home"
+                del st.session_state["usuario_redefinir"]
+                st.rerun()
+            else:
+                st.error("Usuário não encontrado para redefinição.")
