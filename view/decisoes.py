@@ -3,6 +3,7 @@ from datetime import datetime
 from model.banco_dados import SessionLocal
 from model.usuario import UsuarioDB
 from model.banco_dados import DecisoesJudiciais, EfeitosDecisoesJudiciais
+from scripts.popular_efeitos import popular_efeitos_iniciais
 
 def decisoes_judiciais_view():
     st.subheader("⚖️ Decisões Judiciais")
@@ -15,12 +16,16 @@ def decisoes_judiciais_view():
         session.close()
         return
 
+    efeitos = session.query(EfeitosDecisoesJudiciais).all()
+    if len(efeitos) == 0:
+        popular_efeitos_iniciais()
+        efeitos = session.query(EfeitosDecisoesJudiciais).all()
     role = usuario.role
 
     # Se Auditor → CRUD de Efeitos
     if role == "Auditor":
         st.markdown("### ✏️ Efeitos de Decisões Judiciais")
-        efeitos = session.query(EfeitosDecisoesJudiciais).all()
+        
 
         for efeito in efeitos:
             col1, col2 = st.columns([6, 1])

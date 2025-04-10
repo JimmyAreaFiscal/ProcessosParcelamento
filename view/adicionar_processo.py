@@ -42,7 +42,7 @@ def adicionarProcessos():
             processos_adicionados = 0
 
             for _, row in df.iterrows():
-                nome, valor = row["nome"], row["valor"]
+                nome, valor, nome_empresa, cnpj_empresa = row["nome"], row["valor"], row["nome_empresa"], row["cnpj_empresa"]
 
                 if not nome or not isinstance(valor, (int, float)):  # Validação
                     continue
@@ -52,6 +52,8 @@ def adicionarProcessos():
                 if not processo_existente:
                     novo_processo = ProcessoDB(
                         nome=nome,
+                        nome_empresa=nome_empresa,
+                        cnpj_empresa=cnpj_empresa,
                         valor=valor,
                         saneado=False,
                         sei="",

@@ -51,12 +51,4 @@ def painelAdmin():
                     st.success(f"Permissão de {u.conta} alterada para {nova_role}.")
                     st.rerun()
 
-                if st.button(f"🔐 Resetar senha de {u.conta}", key=f"reset_senha_{u.conta}"):
-                    sucesso = resetar_senha(u.conta, usuario.conta)
-                    if sucesso:
-                        st.success("Senha resetada. O usuário deverá redefinir no próximo login.")
-                        st.rerun()
-                    else:
-                        st.error("Erro ao resetar a senha do usuário.")
-
     session.close()

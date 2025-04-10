@@ -20,6 +20,8 @@ class ProcessoDB(Base):
     __tablename__ = "processos"
 
     nome = Column(String, primary_key=True, index=True)
+    nome_empresa = Column(String)
+    cnpj_empresa = Column(String)
     valor = Column(Float, nullable=False)
     saneado = Column(Boolean, default=False)
     sei = Column(String, nullable=True)
@@ -54,7 +56,7 @@ class LogUsuarios(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     conta_usuario = Column(String, ForeignKey("usuarios.conta"), nullable=False)
     administrador = Column(String, nullable=False)
-    data_modificacao = Column(DateTime, default=datetime.utcnow)
+    data_modificacao = Column(DateTime, default=timezone.utc)
     acao = Column(String, nullable=False)
 
 class DecisoesJudiciais(Base):
@@ -62,7 +64,7 @@ class DecisoesJudiciais(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     cpf_contribuinte = Column(String, nullable=False)
-    data_decisao = Column(DateTime, default=datetime.now(datetime.timezone.utc), nullable=False)
+    data_decisao = Column(DateTime, default=datetime.now(timezone.utc), nullable=False)
     numero_processo = Column(String, nullable=False)
     efeitos_fk = Column(Integer, ForeignKey("efeitos_decisoes_judiciais.id"), nullable=False)
     situacao = Column(String, nullable=False)

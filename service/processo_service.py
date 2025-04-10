@@ -1,5 +1,6 @@
 from datetime import datetime
-from model.banco_dados import SessionLocal, ProcessoDB, ProcessoHistoricoDB
+from model.banco_dados import SessionLocal
+from model.processo import ProcessoDB, ProcessoHistoricoDB
 import streamlit as st
 
 def atualizar_processo(nome: str, campo: str, valor):
