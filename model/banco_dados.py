@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine, Column, String, Float, Boolean, LargeBinary, DateTime, Integer, ForeignKey
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy.orm import sessionmaker, declarative_base
 import streamlit as st 
 import os 
